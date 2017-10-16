@@ -11,10 +11,37 @@ Tools::~Tools() {}
 
 VectorXd Tools::CalculateRMSE(const vector<VectorXd> &estimations,
                               const vector<VectorXd> &ground_truth) {
-  /**
-  TODO:
-    * Calculate the RMSE here.
-  */
+    VectorXd rmse(4);
+    rmse << 0,0,0,0;
+
+    // check the validity of the following inputs:
+    //  * the estimation vector size should not be zero
+    //  * the estimation vector size should equal ground truth vector size
+    if (estimations.empty()) {
+        cout << "Err: No estimations found!";
+        return rmse;
+    }
+    if (estimations.size() != ground_truth.size()) {
+        cout << "Err: Number of estimations and ground_truth are not the same!";
+        return rmse;
+    }
+
+    //accumulate squared residuals
+    for(int i=0; i < estimations.size(); ++i){
+        // ... your code here
+        VectorXd diff;
+        diff = estimations[i] - ground_truth[i];
+        rmse << rmse.array() + diff.array() * diff.array();
+    }
+
+    // calculate the mean
+    rmse /= estimations.size();
+
+    //calculate the squared root
+    rmse = rmse.array().sqrt();
+
+    //return the result
+    return rmse;
 }
 
 MatrixXd Tools::CalculateJacobian(const VectorXd& x_state) {
@@ -34,10 +61,11 @@ MatrixXd Tools::CalculateJacobian(const VectorXd& x_state) {
 
     //check division by zero-ish
     if (fabs(px2_py2) < 0.0001) {
-        cout << "TODO: Division by Zero";
+        cout << "Err: Division by Zero";
+        return Hj.setZero();
     }
 
-    // Implement all the derivatives into the matrix.
+    // Implement all the derivatives into the Jacobian matrix.
     Hj << px / sqrt(px2_py2),                py / sqrt(px2_py2),                0,                  0,
           - py / px2_py2,                    px / px2_py2,                      0,                  0,
           py * (vx_py - vy_px) / px2_py2_32, py * (vy_px - vx_py) / px2_py2_32, px / sqrt(px2_py2), py / sqrt(px2_py2);
